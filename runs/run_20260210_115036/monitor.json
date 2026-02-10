@@ -1,0 +1,26 @@
+{
+  "step": 10,
+  "shared": {
+    "plan": "active",
+    "exec": "running",
+    "fingerprint": "7166f6a8070aae7eb6c32597b1c371395aa4973bbe0ca1eec945444219c04468",
+    "_gate": {
+      "alpha": 0.85,
+      "alpha_eff": 1.261315,
+      "status": "CONTRACTING"
+    },
+    "stabilizer": {
+      "status": "active",
+      "action": "tighten_gate_hint"
+    },
+    "_spawn": {
+      "agents": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349
+      }
+    }
+  }
+}

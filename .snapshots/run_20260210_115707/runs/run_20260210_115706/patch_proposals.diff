@@ -1,0 +1,16 @@
+# P001 — Standardize UTF-8 encoding on writes
+# Rationale: Avoid BOM/UTF16 artifacts causing UnicodeDecodeError during exports.
+--- a/README.md
++++ b/README.md
+@@
++## Encoding
++All generated artifacts are written as UTF-8 (no BOM) to avoid decode issues across Windows tooling.
+
+# P002 — Add src/ layout (plan-only)
+# Rationale: Improves import stability and makes packaging predictable.
+--- a/README.md
++++ b/README.md
+@@
++## Suggested structure
++Consider moving top-level python modules under src/ and using explicit packages.
+

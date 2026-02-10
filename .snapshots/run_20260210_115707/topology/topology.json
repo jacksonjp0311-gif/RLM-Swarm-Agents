@@ -1,0 +1,358 @@
+{
+  "events": [
+    {
+      "ts": 1770742236.3723373,
+      "step": 1,
+      "spawned": [],
+      "reason": {
+        "drift": 0.0,
+        "pressure": 0.12,
+        "gate": "OK"
+      }
+    },
+    {
+      "ts": 1770742236.3833468,
+      "step": 2,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.195,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742236.4011679,
+      "step": 3,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.359,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742236.4194217,
+      "step": 4,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742236.4381928,
+      "step": 5,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742236.4579666,
+      "step": 6,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742236.4774818,
+      "step": 7,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742236.4960284,
+      "step": 8,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742236.5151837,
+      "step": 9,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742236.5349386,
+      "step": 10,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742617.141393,
+      "step": 1,
+      "spawned": [],
+      "reason": {
+        "drift": 0.0,
+        "pressure": 0.12,
+        "gate": "OK"
+      }
+    },
+    {
+      "ts": 1770742617.1629372,
+      "step": 2,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.195,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742617.1838684,
+      "step": 3,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.359,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742617.2052543,
+      "step": 4,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742617.2264314,
+      "step": 5,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742617.2456868,
+      "step": 6,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742617.2681675,
+      "step": 7,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742617.289238,
+      "step": 8,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742617.3084772,
+      "step": 9,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742617.32835,
+      "step": 10,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742626.9907553,
+      "step": 1,
+      "spawned": [],
+      "reason": {
+        "drift": 0.0,
+        "pressure": 0.12,
+        "gate": "OK"
+      }
+    },
+    {
+      "ts": 1770742627.0122964,
+      "step": 2,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.195,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742627.0330067,
+      "step": 3,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.359,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742627.0550375,
+      "step": 4,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742627.0746303,
+      "step": 5,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742627.094986,
+      "step": 6,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742627.1154335,
+      "step": 7,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742627.1371534,
+      "step": 8,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742627.158127,
+      "step": 9,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    },
+    {
+      "ts": 1770742627.1778543,
+      "step": 10,
+      "spawned": [
+        "StabilizerAgent"
+      ],
+      "reason": {
+        "drift": 0.1,
+        "pressure": 0.349,
+        "gate": "CONTRACTING"
+      }
+    }
+  ]
+}

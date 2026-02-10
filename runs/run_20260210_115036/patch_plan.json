@@ -1,0 +1,29 @@
+{
+  "root": "C:\\Users\\jacks\\OneDrive\\Desktop\\RLM_Swarm_Agents",
+  "proposals": [
+    {
+      "id": "P001",
+      "title": "Standardize UTF-8 encoding on writes",
+      "rationale": "Avoid BOM/UTF16 artifacts causing UnicodeDecodeError during exports.",
+      "patch": [
+        "--- a/README.md",
+        "+++ b/README.md",
+        "@@",
+        "+## Encoding",
+        "+All generated artifacts are written as UTF-8 (no BOM) to avoid decode issues across Windows tooling."
+      ]
+    },
+    {
+      "id": "P002",
+      "title": "Add src/ layout (plan-only)",
+      "rationale": "Improves import stability and makes packaging predictable.",
+      "patch": [
+        "--- a/README.md",
+        "+++ b/README.md",
+        "@@",
+        "+## Suggested structure",
+        "+Consider moving top-level python modules under src/ and using explicit packages."
+      ]
+    }
+  ]
+}
