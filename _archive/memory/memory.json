@@ -1,0 +1,16 @@
+{
+  "runs": 30,
+  "contracting_steps": 27,
+  "ok_steps": 3,
+  "spawn_counts": {
+    "StabilizerAgent": 27
+  },
+  "last": {
+    "gate": "CONTRACTING",
+    "drift": 0.1,
+    "pressure": 0.349,
+    "spawned": [
+      "StabilizerAgent"
+    ]
+  }
+}
