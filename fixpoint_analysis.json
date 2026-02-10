@@ -1,0 +1,12 @@
+{
+  "final_state": "9e358b3cd896fa45771a48416310ef72437fbe43d5c223149acc3fc89f211f08",
+  "iterations": 0,
+  "drifts": [
+    0.0
+  ],
+  "verification": {
+    "valid": false,
+    "reason": "insufficient_data"
+  },
+  "timestamp": "2026-02-10T18:03:54.064930"
+}
