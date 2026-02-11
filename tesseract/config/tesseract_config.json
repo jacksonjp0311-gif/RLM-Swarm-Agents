@@ -1,0 +1,5 @@
+﻿{
+  "drift_threshold": 10,
+  "fingerprint_tracking": true,
+  "hash_chain_enabled": true
+}
