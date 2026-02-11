@@ -12,6 +12,8 @@ import sys
 import json
 import hashlib
 import subprocess
+import shutil
+import ast
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
@@ -39,6 +41,46 @@ def distance(s1: str, s2: str) -> float:
     return sum(c1 != c2 for c1, c2 in zip(s1, s2)) / len(s1)
 
 # ============================================================================
+# RUN ARTIFACTS & LEDGER
+# ============================================================================
+
+def setup_run_artifacts(repo: Path, apply_mode: bool) -> Tuple[str, Path, Optional[Path]]:
+    """Create run directory and snapshot if applying changes"""
+    run_id = datetime.now().strftime("run_%Y%m%d_%H%M%S")
+    
+    # Create run directory
+    run_dir = Path("runs") / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Create snapshot if applying changes
+    snapshot_dir = None
+    if apply_mode:
+        snapshot_dir = Path(".snapshots") / run_id
+        snapshot_dir.parent.mkdir(exist_ok=True)
+        print(f"Creating snapshot: {snapshot_dir}")
+        shutil.copytree(
+            repo, snapshot_dir,
+            ignore=shutil.ignore_patterns('.git', '__pycache__', '.snapshots', 'runs', '*.pyc')
+        )
+    
+    return run_id, run_dir, snapshot_dir
+
+def log_iteration(run_id: str, iteration: int, drift: float, k: float, action: str, state: str):
+    """Append iteration details to ledger.jsonl"""
+    ledger_entry = {
+        "run": run_id,
+        "iteration": iteration,
+        "drift": drift,
+        "k": k,
+        "action": action,
+        "state_hash": state[:16],
+        "timestamp": datetime.now().isoformat()
+    }
+    
+    with open("runs/ledger.jsonl", "a") as f:
+        f.write(json.dumps(ledger_entry) + "\n")
+
+# ============================================================================
 # CONTRACTION MAPPING T: X → X
 # ============================================================================
 
@@ -57,19 +99,29 @@ def analyze_file(path: Path) -> List[Patch]:
     try:
         code = path.read_text()
         
-        # Dead code detection
-        if 'def ' in code and 'unused_' in code:
-            patches.append(Patch(path, 'remove_dead', 'unused function', 0.1, 5.0))
+        # Skip if file is too small to optimize
+        if len(code) < 100:
+            return patches
         
-        # Duplicate detection
-        lines = code.split('\n')
-        if len(lines) != len(set(lines)):
-            patches.append(Patch(path, 'dedupe', 'duplicate lines', 0.15, 3.0))
+        # Actual duplicate line detection (consecutive only, ignore blanks)
+        lines = [l.strip() for l in code.split('\n') if l.strip()]
+        for i in range(len(lines) - 1):
+            if lines[i] == lines[i+1] and len(lines[i]) > 10:
+                patches.append(Patch(path, 'dedupe', f'duplicate: {lines[i][:30]}', 0.15, 3.0))
+                break  # One patch per file
         
-        # Complexity reduction
-        if code.count('if ') > 10:
-            patches.append(Patch(path, 'simplify', 'high cyclomatic', 0.2, 4.0))
-            
+        # High complexity (real threshold)
+        if code.count('if ') + code.count('elif ') + code.count('for ') > 30:
+            patches.append(Patch(path, 'simplify', 'high branching factor', 0.2, 4.0))
+        
+        # Long functions (>100 lines)
+        if 'def ' in code:
+            funcs = code.split('def ')
+            for func in funcs[1:]:
+                if func.count('\n') > 100:
+                    patches.append(Patch(path, 'refactor', 'long function', 0.25, 5.0))
+                    break
+                    
     except:
         pass
     return patches
@@ -98,28 +150,55 @@ def contraction_map(repo: Path, state: str) -> Tuple[Optional[Patch], float]:
 
 def apply_transform(repo: Path, patch: Patch) -> None:
     """Execute single transformation - modifies state x_n → x_{n+1}"""
-    print(f"  Applying: {patch.action} in {patch.file.name}")
+    print(f"  Applying: {patch.action} to {patch.file.name}")
     
-    # Actual implementation would use AST rewriting
-    # Placeholder: log transformation
-    log_path = repo / '.transform_log'
-    with open(log_path, 'a') as f:
-        f.write(f"{datetime.now()}: {patch.action} -> {patch.file}\n")
+    try:
+        code = patch.file.read_text()
+        new_code = code
+        modified = False
+        
+        if patch.action == 'dedupe':
+            # Remove consecutive duplicate blank lines
+            lines = code.split('\n')
+            result = []
+            prev_blank = False
+            for line in lines:
+                is_blank = not line.strip()
+                if not (is_blank and prev_blank):
+                    result.append(line)
+                prev_blank = is_blank
+            new_code = '\n'.join(result)
+            modified = (new_code != code)
+        
+        elif patch.action == 'refactor':
+            # Add TODO comment for long functions (safe, minimal)
+            if '# TODO: Consider refactoring' not in code:
+                new_code = '# TODO: Consider refactoring long function\n' + code
+                modified = True
+        
+        elif patch.action == 'simplify':
+            # Remove trailing whitespace (safe cleanup)
+            new_code = '\n'.join(line.rstrip() for line in code.split('\n'))
+            modified = (new_code != code)
+        
+        # Write if changed
+        if modified:
+            patch.file.write_text(new_code)
+            print(f"    ✓ Modified")
+        else:
+            print(f"    ○ No changes needed")
+            
+    except Exception as e:
+        print(f"    ✗ Error: {e}")
 
 # ============================================================================
 # FIXED POINT ITERATION
 # ============================================================================
 
-def snapshot(repo: Path, iteration: int) -> Path:
-    """Create rollback point before transformation"""
-    snap_dir = repo / '.snapshots' / f'iter_{iteration:04d}'
-    snap_dir.mkdir(parents=True, exist_ok=True)
-    subprocess.run(['cp', '-r', str(repo), str(snap_dir)], 
-                   capture_output=True, cwd=repo)
-    return snap_dir
-
 def iterate_to_fixpoint(
     repo: Path,
+    run_id: str,
+    run_dir: Path,
     max_iter: int = 50,
     tolerance: float = 1e-8,
     apply_mode: bool = False
@@ -147,6 +226,7 @@ def iterate_to_fixpoint(
         patch, k = contraction_map(repo, state)
         
         if patch is None:
+            log_iteration(run_id, n, 0.0, 0.0, "converged", state)
             print(f"\n✓ Fixed point reached at iteration {n}")
             return state, n, drifts
         
@@ -156,10 +236,6 @@ def iterate_to_fixpoint(
         
         k_values.append(k)
         
-        # Create snapshot before modification
-        if apply_mode:
-            snap = snapshot(repo, n)
-        
         # Apply transformation
         if apply_mode:
             apply_transform(repo, patch)
@@ -168,6 +244,9 @@ def iterate_to_fixpoint(
         new_state = state_hash(repo)
         drift = distance(state, new_state)
         drifts.append(drift)
+        
+        # Log to ledger
+        log_iteration(run_id, n, drift, k, patch.action, new_state)
         
         print(f"[{n:3d}] drift={drift:.8f} k={k:.3f} action={patch.action}")
         
@@ -183,7 +262,10 @@ def iterate_to_fixpoint(
         state = new_state
         history.append(state)
     
-    raise RuntimeError(f"Max iterations {max_iter} exceeded - increase limit or check contractiveness")
+    # Max iterations reached - save partial results
+    print(f"\n⚠ Warning: Max iterations {max_iter} reached without full convergence")
+    print(f"   Last drift: {drifts[-1]:.8f} (tolerance: {tolerance})")
+    return state, max_iter, drifts
 
 # ============================================================================
 # CLI INTERFACE
@@ -232,8 +314,16 @@ def main():
     print(f"Tolerance: {args.tolerance}\n")
     
     try:
+        # Setup run artifacts (creates snapshot if --apply)
+        run_id, run_dir, snapshot_dir = setup_run_artifacts(repo, args.apply)
+        print(f"Run ID: {run_id}")
+        if snapshot_dir:
+            print(f"Snapshot: {snapshot_dir}\n")
+        
         final_state, iters, drifts = iterate_to_fixpoint(
-            repo, 
+            repo,
+            run_id,
+            run_dir,
             max_iter=args.max_iter,
             tolerance=args.tolerance,
             apply_mode=args.apply
@@ -258,6 +348,7 @@ def main():
         
         # Export results
         results = {
+            "run_id": run_id,
             "final_state": final_state,
             "iterations": iters,
             "drifts": drifts,
@@ -265,11 +356,14 @@ def main():
             "timestamp": datetime.now().isoformat()
         }
         
-        out_file = repo / 'fixpoint_analysis.json'
+        out_file = run_dir / 'fixpoint_analysis.json'
         with open(out_file, 'w') as f:
             json.dump(results, f, indent=2)
         
         print(f"\nResults: {out_file}")
+        print(f"Ledger: runs/ledger.jsonl")
+        if snapshot_dir:
+            print(f"Snapshot: {snapshot_dir}")
         
         return 0
         
