@@ -110,11 +110,11 @@ def analyze_file(path: Path) -> List[Patch]:
                 patches.append(Patch(path, 'dedupe', f'duplicate: {lines[i][:30]}', 0.15, 3.0))
                 break  # One patch per file
         
-        # High complexity (real threshold)
-        if code.count('if ') + code.count('elif ') + code.count('for ') > 30:
+        # High complexity (production threshold)
+        if code.count('if ') + code.count('elif ') + code.count('for ') > 50:
             patches.append(Patch(path, 'simplify', 'high branching factor', 0.2, 4.0))
         
-        # Long functions (>100 lines)
+        # Long functions (>100 lines - production threshold)
         if 'def ' in code:
             funcs = code.split('def ')
             for func in funcs[1:]:
@@ -149,45 +149,126 @@ def contraction_map(repo: Path, state: str) -> Tuple[Optional[Patch], float]:
     return best, k
 
 def apply_transform(repo: Path, patch: Patch) -> None:
-    """Execute single transformation - modifies state x_n → x_{n+1}"""
+    """Execute single transformation using AST - modifies state x_n → x_{n+1}"""
     print(f"  Applying: {patch.action} to {patch.file.name}")
     
     try:
         code = patch.file.read_text()
-        new_code = code
+        tree = ast.parse(code)
         modified = False
         
         if patch.action == 'dedupe':
-            # Remove consecutive duplicate blank lines
-            lines = code.split('\n')
-            result = []
-            prev_blank = False
-            for line in lines:
-                is_blank = not line.strip()
-                if not (is_blank and prev_blank):
-                    result.append(line)
-                prev_blank = is_blank
-            new_code = '\n'.join(result)
-            modified = (new_code != code)
+            # Remove consecutive duplicate statements using AST
+            class DedupeTransformer(ast.NodeTransformer):
+                def visit_Module(self, node):
+                    self.generic_visit(node)
+                    node.body = self._dedupe(node.body)
+                    return node
+                
+                def visit_FunctionDef(self, node):
+                    self.generic_visit(node)
+                    node.body = self._dedupe(node.body)
+                    return node
+                
+                def _dedupe(self, stmts):
+                    if len(stmts) < 2:
+                        return stmts
+                    result = [stmts[0]]
+                    for stmt in stmts[1:]:
+                        prev = ast.unparse(result[-1])
+                        curr = ast.unparse(stmt)
+                        if prev != curr:
+                            result.append(stmt)
+                    return result
+            
+            tree = DedupeTransformer().visit(tree)
+            modified = True
         
         elif patch.action == 'refactor':
-            # Add TODO comment for long functions (safe, minimal)
-            if '# TODO: Consider refactoring' not in code:
-                new_code = '# TODO: Consider refactoring long function\n' + code
-                modified = True
+            # Extract long functions into helpers
+            class FunctionExtractor(ast.NodeTransformer):
+                def __init__(self):
+                    self.helpers = []
+                
+                def visit_Module(self, node):
+                    self.generic_visit(node)
+                    if self.helpers:
+                        node.body.extend(self.helpers)
+                    return node
+                
+                def visit_FunctionDef(self, node):
+                    self.generic_visit(node)
+                    lines = ast.unparse(node).count('\n')
+                    
+                    if lines > 100 and len(node.body) > 10:
+                        split = len(node.body) // 2
+                        helper_name = f"_{node.name}_helper"
+                        
+                        # Create helper with second half
+                        helper = ast.FunctionDef(
+                            name=helper_name,
+                            args=ast.arguments(
+                                posonlyargs=[], args=[], kwonlyargs=[],
+                                kw_defaults=[], defaults=[]
+                            ),
+                            body=node.body[split:],
+                            decorator_list=[],
+                            returns=None
+                        )
+                        
+                        # Add helper call to original
+                        node.body = node.body[:split]
+                        node.body.append(ast.Expr(value=ast.Call(
+                            func=ast.Name(id=helper_name, ctx=ast.Load()),
+                            args=[], keywords=[]
+                        )))
+                        
+                        self.helpers.append(helper)
+                    
+                    return node
+            
+            transformer = FunctionExtractor()
+            tree = transformer.visit(tree)
+            modified = bool(transformer.helpers)
         
         elif patch.action == 'simplify':
-            # Remove trailing whitespace (safe cleanup)
-            new_code = '\n'.join(line.rstrip() for line in code.split('\n'))
-            modified = (new_code != code)
-        
-        # Write if changed
-        if modified:
-            patch.file.write_text(new_code)
-            print(f"    ✓ Modified")
-        else:
-            print(f"    ○ No changes needed")
+            # Flatten nested conditionals with early returns
+            class SimplifyTransformer(ast.NodeTransformer):
+                def visit_FunctionDef(self, node):
+                    self.generic_visit(node)
+                    node.body = self._flatten(node.body)
+                    return node
+                
+                def _flatten(self, stmts):
+                    result = []
+                    for stmt in stmts:
+                        if isinstance(stmt, ast.If) and len(stmt.body) == 1:
+                            if isinstance(stmt.body[0], ast.Return):
+                                result.append(stmt)
+                                result.extend(stmt.orelse)
+                            else:
+                                result.append(stmt)
+                        else:
+                            result.append(stmt)
+                    return result
             
+            tree = SimplifyTransformer().visit(tree)
+            modified = True
+        
+        # Generate and write if modified
+        if modified:
+            ast.fix_missing_locations(tree)
+            new_code = ast.unparse(tree)
+            if new_code != code:
+                patch.file.write_text(new_code)
+                print(f"    ✓ Modified")
+            else:
+                print(f"    ○ No changes needed")
+        else:
+            print(f"    ○ No transform applied")
+            
+    except SyntaxError as e:
+        print(f"    ✗ Syntax error: {e}")
     except Exception as e:
         print(f"    ✗ Error: {e}")
 
